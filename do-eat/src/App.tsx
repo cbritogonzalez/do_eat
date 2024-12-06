@@ -1,8 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthProvider';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import Login from './pages/Login';
 import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
 import './App.css';
 
 // Create a theme instance
@@ -18,7 +20,7 @@ const theme = createTheme({
 });
 
 // Protected Route wrapper component
-function ProtectedRoute({ children }: { children: JSX.Element }) {
+function ProtectedRoute({ children }: { children: React.JSX.Element }) {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   
   if (!isAuthenticated) {
@@ -49,7 +51,7 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <Home />
+                  <Profile />
                 </ProtectedRoute>
               }
             />
@@ -57,7 +59,7 @@ function App() {
               path="/settings"
               element={
                 <ProtectedRoute>
-                  <Home />
+                  <Settings />
                 </ProtectedRoute>
               }
             />
