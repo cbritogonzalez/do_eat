@@ -5,7 +5,7 @@ import httpx
 app = FastAPI()
 
 WEATHER_API = 'http://api.weatherapi.com/v1/current.json'
-API_KEY = '00284f2cd52346b8aad124825242011'
+API_KEY = 'your-key'
 
 @app.get("/")
 def read_root():
