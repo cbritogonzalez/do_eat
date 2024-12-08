@@ -1,11 +1,13 @@
-from typing import Union
+from typing import List, Union
 from fastapi import FastAPI, HTTPException
+from albert_heijn.ah import AHConnector
 import httpx
 
 app = FastAPI()
 
 WEATHER_API = 'http://api.weatherapi.com/v1/current.json'
-API_KEY = 'your-key'
+API_KEY = 'key_for_weather_api'
+connector = AHConnector()
 
 @app.get("/")
 def read_root():
@@ -15,6 +17,17 @@ def read_root():
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
+
+
+# AH bonus items API
+@app.get("/ah/bonus", response_model=List[dict])
+async def get_ah_bonus_items():
+    try:
+        # Retrieve bonus items using the AHConnector instance
+        bonus_items = connector.get_bonus_items(10)
+        return bonus_items
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching bonus items: {str(e)}")
 
 # Example API call
 @app.get("/weather")
