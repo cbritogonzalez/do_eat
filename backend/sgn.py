@@ -8,8 +8,8 @@ import base64
 import requests
 
 # Your credentials
-consumer_key = '64fa0f127d5f4b6c8697abdd84ca1034'
-consumer_secret = 'a487c98c1bf0429988419e0c4ee6ce52'
+consumer_key = 'consumer_key'
+consumer_secret = 'consumer_secret'
 callback_url = 'oob'
 
 # OAuth 1.0a parameters

@@ -32,7 +32,7 @@ def get_food_details(food_id, access_token):
         return {"error": "An exception occurred", "details": str(e)}
 
 # Replace with your actual access token
-ACCESS_TOKEN = 'e1c2fbb42e9148309f62ff15ee5eafa5'
+ACCESS_TOKEN = 'token'
 FOOD_ID = 33691
 
 if __name__ == "__main__":
