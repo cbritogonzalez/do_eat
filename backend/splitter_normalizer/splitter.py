@@ -10,22 +10,17 @@ from albert_heijn.ah import AHConnector
 from pprint import pprint
 
 class Splitter:
-    # split the message into individual messages
-    def preprocess_message(self, input_message):
-        messages = input_message.strip().split("}\n")
-        parsed_messages = []
-
-        for message in messages:
-            message = message.strip()
-            # fix error when it still checks after last element
-            if not message.endswith("}"):
-                message += "}"
-            try:
-                parsed_messages.append(ast.literal_eval(message))
-            except (SyntaxError, ValueError) as e:
-                print(f"error parsing message: {message}\n {e}")
-
-        # euro symbol error, fix later
+    # read items from json file and split the message into individual messages
+    def preprocess_message(self, input_file):
+        try:
+            with open(input_file, 'r') as file:
+                parsed_messages = json.load(file)
+            if not isinstance(parsed_messages, list):
+                raise ValueError("Expected JSON to be a list of messages")
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"Error loading JSON: {e}")
+            parsed_messages = []
+        
         return parsed_messages
     
     # add the message into a queue
@@ -44,12 +39,22 @@ class Splitter:
 
 if __name__ == "__main__":
 
-    with open('ah_example.txt', 'r') as file:
-        input_message = file.read()
+    ah_file = 'savedata_AH.json'
+    jumbo_file = 'savedata_jumbo.json'
 
     splitter = Splitter()
-    preprocess_message = splitter.preprocess_message(input_message)
-    output_queue = queue.Queue()
-    enq_message = splitter.enque_message(preprocess_message, output_queue)
 
-    splitter.process_queue(output_queue)
+    parsed_messages_ah = splitter.preprocess_message(ah_file)
+    parsed_messages_jumbo = splitter.preprocess_message(jumbo_file)
+    
+    if parsed_messages_ah and parsed_messages_jumbo:
+        ah_queue = queue.Queue()
+        jumbo_queue = queue.Queue()
+
+        splitter.enque_message(parsed_messages_ah, ah_queue)
+        splitter.enque_message(parsed_messages_jumbo,jumbo_queue)
+        print(f"ah nr items in queue: {ah_queue.qsize()}")
+        print(f"jumbo nr items in queue: {jumbo_queue.qsize()}")
+
+        # splitter.process_queue(ah_queue)
+        # splitter.process_queue(jumbo_queue)
