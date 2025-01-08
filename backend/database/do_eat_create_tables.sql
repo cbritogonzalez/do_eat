@@ -114,6 +114,8 @@ create table products( -- TODO: discuss how to delete outdated ones (with trigge
 	foreign key (market_id) references markets(market_id)
 );
 
+SELECT * FROM products;
+
 create table ingredients(
 	ingredient_id bigserial primary key,
 	ingredient_descr varchar(100) -- note: w/ quantity
