@@ -1,29 +1,25 @@
 import queue
 import datetime
 from splitter import Splitter
+from googletrans import Translator
 
-# First remove useless fields
-# Second convert some fields to the needed column
-# Add AH/Jumbo differentiating
-# Translate everything in English
-
-#  message = {
-#         "title": "cucumbers",
-#         "brand": "AH",
-#         "bonus_start_date": "3/1/2025",
-#         "bonus_end_date": None,
-#         "bonus_mechanism": None,
-#         "initial_price": "1.05",
-#         "final_price": None,
-#         "market": "jumbo" #or AH 
-#     }
 
 class Normalizer:
 
+    def translate_title(self,string_to_translate):
+        translator = Translator()
+        title = string_to_translate  # Provide a default in case "title" is missing
+        translated_title = translator.translate(title, src="nl", dest="en").text
+        return translated_title
+
     # Function to normalize AH data
     def normalize_ah(self,ah_data):
+        title = ah_data.get("title")
         return {
-            "title": ah_data.get("title"),
+            #"title": GoogleTranslator(source='nl', target='en').translate(ah_data.get("title")),
+            #"title": PonsTranslator(source='dutch', target='english').translate(ah_data.get("title"), return_all=False),
+            #"title": translator.translate(title, src="nl", dest="nl"),
+            "title": self.translate_title(title),
             "brand": ah_data.get("brand"),
             "bonus_start_date": self.normalize_date(ah_data.get("bonusStartDate")),
             "bonus_end_date": self.normalize_date(ah_data.get("bonusEndDate")),
@@ -94,11 +90,25 @@ if __name__ == "__main__":
         uniform_data = []
         normalizer = Normalizer()
         
-        ah_data = ah_queue.get()
-        uniform_data.append(normalizer.normalize_ah(ah_data))
+        uniform_data = []
 
-        jumbo_data = jumbo_queue.get()
-        uniform_data.append(normalizer.normalize_jumbo(jumbo_data))
+
+        # first_item = ah_queue.get()
+        # title = first_item.get("title")
+        # print(title)
+        # print(normalizer.translate_title(title))
+
+        cnt = 0
+        # Normalize all items from the AH queue
+        for ah_data in list(ah_queue.queue): 
+            cnt += 1
+            uniform_data.append(normalizer.normalize_ah(ah_data))
+            if cnt == 50:
+                break
+
+        # Normalize all items from the Jumbo queue
+        for jumbo_data in list(jumbo_queue.queue):  
+            uniform_data.append(normalizer.normalize_jumbo(jumbo_data))
 
         for item in uniform_data:
             print(item)
