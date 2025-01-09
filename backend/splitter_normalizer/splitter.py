@@ -1,7 +1,6 @@
 import sys
 import os
 import queue
-import ast
 import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -9,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from albert_heijn.ah import AHConnector
 from pprint import pprint
 
+# Define class Splitter, which splits the files into message queues
 class Splitter:
     # read items from json file and split the message into individual messages
     def preprocess_message(self, input_file):
@@ -37,24 +37,29 @@ class Splitter:
 
 
 
-if __name__ == "__main__":
 
-    ah_file = 'savedata_AH.json'
-    jumbo_file = 'savedata_jumbo.json'
 
-    splitter = Splitter()
 
-    parsed_messages_ah = splitter.preprocess_message(ah_file)
-    parsed_messages_jumbo = splitter.preprocess_message(jumbo_file)
+
+# Test Splitter below
+# if __name__ == "__main__":
+
+#     ah_file = 'savedata_AH.json'
+#     jumbo_file = 'savedata_jumbo.json'
+
+#     splitter = Splitter()
+
+#     parsed_messages_ah = splitter.preprocess_message(ah_file)
+#     parsed_messages_jumbo = splitter.preprocess_message(jumbo_file)
     
-    if parsed_messages_ah and parsed_messages_jumbo:
-        ah_queue = queue.Queue()
-        jumbo_queue = queue.Queue()
+#     if parsed_messages_ah and parsed_messages_jumbo:
+#         ah_queue = queue.Queue()
+#         jumbo_queue = queue.Queue()
 
-        splitter.enque_message(parsed_messages_ah, ah_queue)
-        splitter.enque_message(parsed_messages_jumbo,jumbo_queue)
-        print(f"ah nr items in queue: {ah_queue.qsize()}")
-        print(f"jumbo nr items in queue: {jumbo_queue.qsize()}")
+#         splitter.enque_message(parsed_messages_ah, ah_queue)
+#         splitter.enque_message(parsed_messages_jumbo,jumbo_queue)
+#         print(f"ah nr items in queue: {ah_queue.qsize()}")
+#         print(f"jumbo nr items in queue: {jumbo_queue.qsize()}")
 
-        # splitter.process_queue(ah_queue)
-        # splitter.process_queue(jumbo_queue)
+#         # splitter.process_queue(ah_queue)
+#         # splitter.process_queue(jumbo_queue)
