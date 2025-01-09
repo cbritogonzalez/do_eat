@@ -12,7 +12,7 @@ function Login() {
     e.preventDefault();
     if (username && password) {
       login(username, password);
-      navigate('/home');
+      navigate('/setup'); // Navigate to the setup screen
     }
   };
 
@@ -42,4 +42,4 @@ function Login() {
   );
 }
 
-export default Login; 
+export default Login;
