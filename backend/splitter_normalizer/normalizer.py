@@ -94,11 +94,15 @@ if __name__ == "__main__":
         uniform_data = []
         normalizer = Normalizer()
         
-        ah_data = ah_queue.get()
-        uniform_data.append(normalizer.normalize_ah(ah_data))
+        uniform_data = []
 
-        jumbo_data = jumbo_queue.get()
-        uniform_data.append(normalizer.normalize_jumbo(jumbo_data))
+        # Normalize all items from the AH queue
+        for ah_data in list(ah_queue.queue): 
+            uniform_data.append(normalizer.normalize_ah(ah_data))
+
+        # Normalize all items from the Jumbo queue
+        # for jumbo_data in list(jumbo_queue.queue):  
+        #     uniform_data.append(normalizer.normalize_jumbo(jumbo_data))
 
         for item in uniform_data:
             print(item)
