@@ -1,6 +1,8 @@
 import requests
 # from pprint import pprint
 from datetime import datetime
+import os
+import json
 
 HEADERS = {
     'Host': 'api.ah.nl',
@@ -32,23 +34,53 @@ class AHConnector:
             params={"sortOn": sort, "page": page, "size": size, "query": query},
             headers={**HEADERS, "Authorization": "Bearer {}".format(self._access_token.get('access_token'))}
         )
-        if not response.ok:
-            response.raise_for_status()
+        # if not response.ok:
+            # response.raise_for_status()
         return response.json()
 
 
+    # def search_all_products(self, **kwargs):
+    #     """
+    #     Iterate all the products available, filtering by query or other filters. Will return generator.
+    #     :param kwargs: See params of 'search_products' method, note that size should not be altered to optimize/limit pages
+    #     :return: generator yielding products
+    #     """
+    #     response = self.search_products(page=0, **kwargs)
+    #     yield from response['products']
+
+    #     for page in range(1, response['page']['totalPages']):
+    #         response = self.search_products(page=page, **kwargs)
+    #         yield from response['products']
+    
     def search_all_products(self, **kwargs):
         """
         Iterate all the products available, filtering by query or other filters. Will return generator.
         :param kwargs: See params of 'search_products' method, note that size should not be altered to optimize/limit pages
         :return: generator yielding products
         """
-        response = self.search_products(page=0, **kwargs)
-        yield from response['products']
+        try:
+            response = self.search_products(page=0, **kwargs)
+            if 'products' in response:
+                yield from response['products']
+            else:
+                print("Warning: 'products' key missing in response for page 0.")
+                return
 
-        for page in range(1, response['page']['totalPages']):
-            response = self.search_products(page=page, **kwargs)
-            yield from response['products']
+            total_pages = response.get('page', {}).get('totalPages', 0)
+            for page in range(1, total_pages):
+                try:
+                    response = self.search_products(page=page, **kwargs)
+                    if 'products' in response:
+                        yield from response['products']
+                    else:
+                        print(f"Warning: 'products' key missing in response for page {page}.")
+                        continue
+                except Exception as e:
+                    print(f"Error fetching page {page}: {e}")
+                    continue
+        except Exception as e:
+            print(f"Critical error in search_all_products: {e}")
+
 
     def get_product_by_barcode(self, barcode):
         response = requests.get(
@@ -139,26 +171,23 @@ class AHConnector:
 
 
 
-if __name__ == '__main__':
-    from pprint import pprint
-    connector = AHConnector()
-    # pprint(connector.search_products())
-    # pprint(len(list(connector.search_all_products(query='smint'))))
-    # pprint(connector.get_product_details(connector.get_product_by_barcode('8410031965902')))
-    # pprint(connector.get_categories())
-    # pprint(connector.get_sub_categories(connector.get_categories()[0]))
+# if __name__ == '__main__':
+#     from pprint import pprint
+#     connector = AHConnector()    
+#     folder_path = "api_celery"
+#     file_path = os.path.join(folder_path, "savedata_AH_test.json")
+            
+#     with open(file_path, "w") as save_file:
+#         save_file.write("[\n")
+#         first = True
+#         for item in connector.search_all_products():
+#             if not first:
+#                 save_file.write(",\n")
+#             json.dump(item, save_file)
+#             first = False
+#         save_file.write("\n]")
+#     pprint("TEST")
 
-    # pprint(connector.search_products('Smint')['products'])
-
-    # pprint(connector.get_product_details(177119))
-    
-    bonus_items = connector.get_bonus_items(400)
-    number = 0
-    # Print the retrieved bonus items
-    for item in bonus_items:
-        pprint(item)
-        number +=1
-        pprint(number)
-
-    
-
+#     results = list(connector.search_all_products())
+#     print(f"Fetched {len(results)} items.")
+#     print(results)
