@@ -19,6 +19,7 @@ import {
   Person as PersonIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
+  RestaurantMenu as MealPlanIcon, // Import the MealPlan icon
 } from '@mui/icons-material';
 
 interface LayoutProps {
@@ -72,6 +73,10 @@ function Layout({ children }: LayoutProps) {
               <ListItemIcon><SettingsIcon /></ListItemIcon>
               <ListItemText primary="Settings" />
             </ListItemButton>
+            <ListItemButton onClick={() => navigate('/mealplan')}>
+              <ListItemIcon><MealPlanIcon /></ListItemIcon>
+              <ListItemText primary="Meal Plan" />
+            </ListItemButton>
           </List>
         </Box>
       </Drawer>
@@ -86,4 +91,4 @@ function Layout({ children }: LayoutProps) {
   );
 }
 
-export default Layout; 
+export default Layout;

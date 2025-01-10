@@ -5,7 +5,8 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import Setup from './pages/Setup'; // Import the new Setup component
+import Setup from './pages/SetUp'; // Import the new Setup component
+import MealPlan from './pages/MealPlan'; // Import the new MealPlan component
 import './App.css';
 
 // Create a theme instance
@@ -69,6 +70,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Setup />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mealplan"
+              element={
+                <ProtectedRoute>
+                  <MealPlan />
                 </ProtectedRoute>
               }
             />
