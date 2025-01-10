@@ -26,6 +26,8 @@ const apiService = {
   async deleteResource(id: string) {
     await api.delete(`/resource/${id}`);
   }
+
+  
 };
 
-export default apiService; 
+export default apiService;
