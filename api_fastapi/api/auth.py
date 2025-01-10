@@ -20,4 +20,4 @@ async def auth_redirect(code: str = Query(...)):
     flow.fetch_token(code=code)
     credentials = flow.credentials
     user_creds['token'] = credentials.to_json()
-    return {"message": "Authentication successful", "token": credentials.token}
+    return {"message": "Authentication successful", "token": credentials.token} # change to redirect to homepage
