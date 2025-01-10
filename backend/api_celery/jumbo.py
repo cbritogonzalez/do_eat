@@ -3,6 +3,7 @@ from math import ceil
 from supermarktconnector.errors import PaginationLimitReached
 import logging
 from pprint import pprint
+import json
 logger = logging.getLogger('supermarkt_connector')
 logger.setLevel(logging.INFO)
 
@@ -15,11 +16,11 @@ class JumboConnector:
     jumbo_api_version = "v17"
 
     def search_products(self, query=None, page=0, size=30):
-        if (page + 1 * size) > 30:
-            raise PaginationLimitReached('Pagination limit on Jumbo connector of 30')
-
+        """
+        Fetch a single page of products.
+        """
         response = requests.get(
-            'https://mobileapi.jumbo.com/' + self.jumbo_api_version + '/search',
+            f'https://mobileapi.jumbo.com/{self.jumbo_api_version}/search',
             headers=HEADERS,
             params={"offset": page * size, "limit": size, "q": query},
         )
@@ -29,21 +30,32 @@ class JumboConnector:
 
     def search_all_products(self, **kwargs):
         """
-        Iterate all the products available, filtering by query or other filters. Will return generator.
-        :param kwargs: See params of 'search_products' method, note that size should not be altered to optimize/limit pages
+        Fetch all available products iteratively.
+        :param kwargs: See params of 'search_products' method.
         :return: generator yielding products
         """
         size = kwargs.pop('size', None) or 30
-        response = self.search_products(page=0, size=size, **kwargs)
-        yield from response['products']['data']
+        page = 0
 
-        for page in range(1, ceil(response['products']['total'] / size)):
-            try:
-                response = self.search_products(page=page, **kwargs)
-            except PaginationLimitReached as e:
-                logger.warning('Pagination limit reached, capping response: {}'.format(e))
-                return
-            yield from response['products']['data']
+        while True:
+            # Fetch the products for the current page
+            response = self.search_products(page=page, size=size, **kwargs)
+
+            # Extract products
+            products = response.get('products', {}).get('data', [])
+            if not products:  # Stop when no products are found
+                break
+
+            # Yield products one by one
+            yield from products
+
+            # Increment page for the next batch
+            page += 1
+
+            # Optional: Stop if the total count is reached
+            total_products = response['products'].get('total', 0)
+            if page * size >= total_products:
+                break
 
     def get_product_by_barcode(self, barcode):
         response = requests.get(
@@ -133,31 +145,32 @@ class JumboConnector:
 
 if __name__ == '__main__':
     connector = JumboConnector()
-    # pprint(connector.search_products(query='Smint'))
-    # pprint(len(list(connector.search_all_products(query='Smint'))))
-    pprint(list(connector.search_all_products(query='')))
-    # pprint(connector.get_product_details(connector.get_product_by_barcode('8410031965902')))
-    # pprint(connector.get_categories())
-    # pprint(connector.get_sub_categories(connector.get_categories()[0]))
-
-# if __name__ == '__main__':
-#     # from pprint import pprint
-#     # connector = JumboConnector()
-#     # pprint(connector.search_products(query='Smint'))
-#     # pprint(len(list(connector.search_all_products(query='Smint'))))
-#     # pprint(list(connector.search_all_products()))
-
-#     # products = list(connector.search_all_products(30))
-#     # logging.info(f"Fetched {len(products)} products from Jumbo.")
-#     # products_json = json.dumps(products, default=str)  # Use default=str to handle non-serializable types
-#     # pprint(products_json)
+    # try:
+    #     results = list(connector.search_all_products())
+    #     pprint(len(results))
+    # except Exception as e:
+    #     logger.error(f"An error occurred: {e}")
     
-#     # pprint(connector.get_product_details(connector.get_product_by_barcode('8410031965902')))
-#     # pprint(connector.get_categories())
-#     # pprint(connector.get_sub_categories(connector.get_categories()[0]))
+    # with open("savedata_jumbo_new.json", "w") as save_file:
+    #     save_file.write("[\n")
+    #     first = True
+    #     for item in connector.search_all_products():
+    #         if not first:
+    #             save_file.write(",\n")
+    #         json.dump(item, save_file)
+    #         first = False
+    #     save_file.write("\n]")
+    # pprint("TEST")
+    # item = list(connector.search_all_products())
+    # with open("savedata_jumbo_new.json", "w") as save_file:
+    #     json.dump(item, save_file, indent=2) 
 
-#     connector = JumboConnector
-#     # connector.get_all_promotions()
-#     products = connector.search_all_products(query=" ")  # Example query
-#     for product in products:
-#         print(product)  # Print each product
+    # pprint("TEST")
+    # try:
+    #     results = list(connector.search_all_products())
+    #     # pprint(len(results))
+    #     with open("savedata_jumbo_new.json", "w") as save_file:
+    #         json.dump(results, save_file)
+    #     print("TEST")
+    # except Exception as e:
+    #     logger.error(f"An error occurred: {e}")

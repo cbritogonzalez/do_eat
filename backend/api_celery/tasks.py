@@ -1,38 +1,62 @@
-from app import celery_app
+from api_celery.celery import app
+from api_celery.albert_heijn import AHConnector
+from api_celery.jumbo import JumboConnector
+
+import os
 import logging
-from jumbo import JumboConnector
-from albert_heijn import AHConnector
-from pprint import pprint
 import json
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-@celery_app.task(name='tasks.fetch_albert_heijn_data')
-def fetch_albert_heijn_data():
-    logging.info('Fetching data from Albert Heijn')
-    connector_AH = AHConnector()
+@app.task
+def fetch_albert_heijn():
+    logging.info("Starting to fetch data from Albert Heijn API.")
     try:
-        products_ah = list(connector_AH.get_bonus_items(400))
-        logging.info(f"Fetched {len(products_ah)} products from Albert Heijn.")
+        connection_AH = AHConnector()
+        logger.info("Connected to Albert Heijn API.")
+        data = list(connection_AH.search_all_products())
 
-        # products_json_ah = json.dumps(products_ah, indent=2, ensure_ascii=False)
-        products_json_ah = json.dumps(products_ah, default=str)
-        return products_json_ah
+        folder_path = "api_celery"
+        file_path = os.path.join(folder_path, "savedata_AH.json")
+        
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            logger.info(f"Created folder: {folder_path}")
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"Deleted existing file: {file_path}")
+        
+        with open(file_path, "w") as save_file:
+            json.dump(data, save_file, indent=1)
+        
+        logger.info("Data successfully fetched and saved to 'savedata_AH.json'.")
     except Exception as e:
-        logging.error(f"Error while fetching data: {e}")
-        raise
+        logger.error(f"Error occurred while fetching data: {e}")
 
-
-@celery_app.task(name='tasks.fetch_jumbo_data')
-def fetch_jumbo_data():
-    logging.info('Fetching dara from Jumbo')
-    connector_Jumbo = JumboConnector()
+@app.task
+def fetch_jumbo():
+    logging.info("Starting to fetch data from Jumbo API.")
     try:
-        products_jumbo = list(connector_Jumbo.search_all_products(query=''))
-        logging.info(f"Fetched {len(products_jumbo)} products from Jumbo.")
-        products_json_jumbo = json.dumps(products_jumbo, default=str)
-        return products_json_jumbo
-    except Exception as e:
-        logging.error(f"Error : {e}")
-        raise
+        connection_jumbo = JumboConnector()
+        logger.info("Connected to Jumbo API.")
+        data = list(connection_jumbo.search_all_products())
 
-    
+        folder_path = "api_celery"
+        file_path = os.path.join(folder_path, "savedata_jumbo.json")
+        
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            logger.info(f"Created folder: {folder_path}")
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"Deleted existing file: {file_path}")
+        
+        with open(file_path, "w") as save_file:
+            json.dump(data, save_file, indent=1)
+        
+        logger.info("Data successfully fetched and saved to 'savedata_jumbo.json'.")
+    except Exception as e:
+        logger.error(f"Error occurred while fetching data: {e}")
