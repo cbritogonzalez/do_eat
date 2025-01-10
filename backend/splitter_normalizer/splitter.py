@@ -1,15 +1,16 @@
-import sys
-import os
-import queue
 import json
+import pika
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from albert_heijn.ah import AHConnector
-from pprint import pprint
-
-# Define class Splitter, which splits the files into message queues
+# Class that splits json file containing all items and processes each item and places in a queue
 class Splitter:
+
+    # Initialize RabbitMQ queue
+    def __init__(self, rabbitmq_host='localhost', queue_name='supermarket_queue'):
+        self.queue_name = queue_name
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=self.queue_name)
+
     # read items from json file and split the message into individual messages
     def preprocess_message(self, input_file):
         try:
@@ -20,21 +21,48 @@ class Splitter:
         except (json.JSONDecodeError, ValueError) as e:
             print(f"Error loading JSON: {e}")
             parsed_messages = []
-        
-        return parsed_messages
-    
-    # add the message into a queue
-    def enque_message(self,parsed_messages, output_queue):
-        for message in parsed_messages:
-            output_queue.put(message)
-    
-    # logs entries into the queue || Is WireTap something like this?
-    def process_queue(self,input_queue):
-        while not input_queue.empty():
-            item = input_queue.get()
-            print(f"Processing item {item}")
-            input_queue.task_done()
 
+        return parsed_messages
+
+    # add the message into a RabbitMQ queue
+    def enque_message(self, parsed_messages):
+        for message in parsed_messages:
+            # Publish each message to the RabbitMQ queue
+            self.channel.basic_publish(
+                exchange='',
+                routing_key=self.queue_name,
+                body=json.dumps(message)
+            )
+            print(f"Message enqueued: {message}")
+
+    # consume messages from RabbitMQ queue
+    def process_queue(self):
+        # Consume messages from the RabbitMQ queue
+        def callback(ch, method, properties, body):
+            message = json.loads(body)
+            print(f"Processing message: {message}")
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+
+        self.channel.basic_consume(queue=self.queue_name, on_message_callback=callback, auto_ack=False)
+        print("Waiting for messages. To exit, press CTRL+C")
+        self.channel.start_consuming()
+
+    def close_connection(self):
+        self.connection.close()
+
+
+# Example splitter for ah
+# if __name__ == "__main__":
+#     splitter = Splitter(rabbitmq_host='localhost', queue_name='ah_queue')
+
+#     ah_file = 'savedata_AH.json'
+
+#     parsed_messages_ah = splitter.preprocess_message(ah_file)
+#     if parsed_messages_ah:
+#         splitter.enque_message(parsed_messages_ah)
+#         #splitter.process_queue()
+
+#     splitter.close_connection()
 
 
 
