@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: 'https://api.example.com',
+  baseURL: 'http://localhost:3000', // Updated this to point to our backend URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -17,4 +17,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export default api; 
+export const createProfile = async (profileData: any) => {
+  console.log('createProfile called with:', profileData); // Add this line
+  try {
+    const response = await api.post('/saveProfile', profileData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export default api;

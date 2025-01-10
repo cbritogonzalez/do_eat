@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Container, Typography, Box, Checkbox, FormControlLabel, FormGroup, Grid, FormLabel } from '@mui/material';
+import { createProfile } from '../services/api.ts';
 
 function Setup() {
   const [age, setAge] = useState('');
@@ -11,7 +12,7 @@ function Setup() {
   const [dietType, setDietType] = useState('');
   const [allergies, setAllergies] = useState<string[]>([]);
   const [cookingDuration, setCookingDuration] = useState('');
-  const [dailyBudget, setDailyBudget] = useState('');
+  const [budget, setBudget] = useState('');
   const [mealTimes, setMealTimes] = useState({
     breakfast: '',
     snack1: '',
@@ -36,16 +37,24 @@ function Setup() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    alert('Submitting profile');
     e.preventDefault();
-    // Handle form submission
+    const profileData = { age, allergies, bodyFat, budget, cookingDuration, dietType, goal, height, mealRepetition, mealTimes, sex, weight};
+    try {
+      await createProfile(profileData);
+      alert('Profile saved successfully');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile');
+    }
   };
 
   const generateTimeOptions = (start: number, end: number, meal_type: string) => {
     const options = [];
-    if (meal_type === "snack") {
-        options.push(<MenuItem key="none" value="none">No Snack</MenuItem>);
-    }
+    // if (meal_type === "snack") {
+    //   options.push(<MenuItem key="none" value="none">No Snack</MenuItem>);
+    // }
     for (let i = start; i <= end; i += 0.5) {
       const hour = Math.floor(i);
       const minute = (i % 1) * 60;
@@ -56,7 +65,7 @@ function Setup() {
   };
 
   return (
-    <Box sx={{mt: 4 }}>
+    <Box sx={{ mt: 4 }}>
       <Container maxWidth="sm">
         <Box sx={{ mt: 4, backgroundColor: 'white', p: 3, borderRadius: 2 }}>
           <Typography variant="h4" component="h2" gutterBottom>
@@ -64,6 +73,7 @@ function Setup() {
           </Typography>
           <form onSubmit={handleSubmit}>
             <TextField
+              required
               label="Age"
               variant="outlined"
               fullWidth
@@ -72,6 +82,7 @@ function Setup() {
               onChange={(e) => setAge(e.target.value)}
             />
             <TextField
+              required
               label="Height (cm)"
               variant="outlined"
               fullWidth
@@ -80,6 +91,7 @@ function Setup() {
               onChange={(e) => setHeight(e.target.value)}
             />
             <TextField
+              required
               label="Weight (kg)"
               variant="outlined"
               fullWidth
@@ -87,7 +99,7 @@ function Setup() {
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
             />
-            <FormControl variant="outlined" fullWidth margin="normal">
+            <FormControl variant="outlined" fullWidth margin="normal" required>
               <InputLabel>Biological Sex</InputLabel>
               <Select
                 value={sex}
@@ -98,7 +110,7 @@ function Setup() {
                 <MenuItem value="male">Male</MenuItem>
               </Select>
             </FormControl>
-            <FormControl variant="outlined" fullWidth margin="normal">
+            <FormControl variant="outlined" fullWidth margin="normal" required>
               <InputLabel>Body Fat</InputLabel>
               <Select
                 value={bodyFat}
@@ -110,7 +122,7 @@ function Setup() {
                 <MenuItem value="high">High</MenuItem>
               </Select>
             </FormControl>
-            <FormControl variant="outlined" fullWidth margin="normal">
+            <FormControl variant="outlined" fullWidth margin="normal" required>
               <InputLabel>Goal</InputLabel>
               <Select
                 value={goal}
@@ -122,7 +134,7 @@ function Setup() {
                 <MenuItem value="build muscle">Build Muscle</MenuItem>
               </Select>
             </FormControl>
-            <FormControl variant="outlined" fullWidth margin="normal">
+            <FormControl variant="outlined" fullWidth margin="normal" required>
               <InputLabel>Diet Type</InputLabel>
               <Select
                 value={dietType}
@@ -158,7 +170,7 @@ function Setup() {
                 </Grid>
               </FormGroup>
             </FormControl>
-            <FormControl variant="outlined" fullWidth margin="normal">
+            <FormControl variant="outlined" fullWidth margin="normal" required>
               <InputLabel>Cooking Duration</InputLabel>
               <Select
                 value={cookingDuration}
@@ -173,14 +185,15 @@ function Setup() {
               </Select>
             </FormControl>
             <TextField
+              required
               label="Daily Budget (€)"
               variant="outlined"
               fullWidth
               margin="normal"
-              value={dailyBudget}
-              onChange={(e) => setDailyBudget(e.target.value)}
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
             />
-            <FormControl component="fieldset" fullWidth margin="normal">
+            <FormControl component="fieldset" fullWidth margin="normal" required>
               <FormLabel component="legend">Meal Times</FormLabel>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
@@ -197,7 +210,7 @@ function Setup() {
                   </FormControl>
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl variant="outlined" fullWidth margin="normal">
+                  <FormControl variant="outlined" fullWidth margin="normal" required>
                     <InputLabel>Snack 1</InputLabel>
                     <Select
                       value={mealTimes.snack1}
@@ -210,7 +223,7 @@ function Setup() {
                   </FormControl>
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl variant="outlined" fullWidth margin="normal">
+                  <FormControl variant="outlined" fullWidth margin="normal" required>
                     <InputLabel>Lunch</InputLabel>
                     <Select
                       value={mealTimes.lunch}
@@ -223,7 +236,7 @@ function Setup() {
                   </FormControl>
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl variant="outlined" fullWidth margin="normal">
+                  <FormControl variant="outlined" fullWidth margin="normal" required>
                     <InputLabel>Snack 2</InputLabel>
                     <Select
                       value={mealTimes.snack2}
@@ -236,7 +249,7 @@ function Setup() {
                   </FormControl>
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl variant="outlined" fullWidth margin="normal">
+                  <FormControl variant="outlined" fullWidth margin="normal" required>
                     <InputLabel>Dinner</InputLabel>
                     <Select
                       value={mealTimes.dinner}
@@ -250,8 +263,8 @@ function Setup() {
                 </Grid>
               </Grid>
             </FormControl>
-            
-            <FormControl variant="outlined" fullWidth margin="normal">
+
+            <FormControl variant="outlined" fullWidth margin="normal" required>
               <InputLabel>Meal Repetition</InputLabel>
               <Select
                 value={mealRepetition}
