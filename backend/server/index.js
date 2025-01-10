@@ -36,6 +36,29 @@ app.post('/saveProfile', async (req, res) => {
   }
 });
 
+app.get('/scheduledMeals', async (req, res) => {
+  const { userId } = req.query;
+  console.log('test');
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  try {
+    const client = await pool.connect();
+    const result = await client.query(
+      `SELECT * FROM get_scheduled_meals($1)`,
+      [userId]
+    );
+    console.log('from index.js', result.rows);
+    client.release();
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching scheduled meals:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

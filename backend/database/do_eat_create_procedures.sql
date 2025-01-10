@@ -113,3 +113,44 @@ CALL insert_user(
     'male'::TEXT,                                   -- Sex
     75::smallint                                    -- Weight in kg
 );
+---------------------------------------
+CREATE OR REPLACE FUNCTION get_scheduled_meals(user_id_input INT)
+RETURNS TABLE(
+    recipe_name VARCHAR,
+    date_time TIMESTAMPTZ,
+    ingredients TEXT,
+    nutrition_info TEXT,
+    total_cook_time TEXT,  -- Changed to TEXT
+    cost TEXT,             -- Changed to TEXT
+    portions smallint,
+    instructions TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        r.recipe_name,
+        sm.date_time,
+        STRING_AGG(i.ingredient_descr, ', ') AS ingredients,
+        FORMAT('Calories: %skcal, Protein: %sg, Carbs: %sg, Fat: %sg', r.calories, r.protein, r.carbs, r.fat) AS nutrition_info,
+        FORMAT('%s mins', (r.prep_time_minutes + r.cook_time_minutes)) AS total_cook_time,
+        FORMAT('€%s', r.total_cost) AS cost,
+        r.portions,
+        r.instructions
+    FROM scheduled_meals sm
+    JOIN recipes r ON sm.recipe_id = r.recipe_id
+    LEFT JOIN recipes_ingredients ri ON r.recipe_id = ri.recipe_id
+    LEFT JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+    LEFT JOIN products p ON r.recipe_id = p.offer_id  -- Assuming offer_id corresponds to recipe_id for cost
+    WHERE sm.user_id = user_id_input
+      AND sm.date_time >= NOW()  -- Current time
+      AND sm.date_time < NOW() + INTERVAL '7 days'  -- Next 7 days
+    GROUP BY r.recipe_name, sm.date_time, r.calories, r.protein, r.carbs, r.fat, r.prep_time_minutes, r.cook_time_minutes, r.total_cost, r.portions, r.instructions
+    ORDER BY sm.date_time ASC;  -- Order by date_time from oldest to newest
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM get_scheduled_meals(1);
+
+
+
+

@@ -14,7 +14,7 @@ drop table if exists products;
 drop table if exists markets;
 
 create table body_fat_types(
-	body_fat_id serial primary key, 
+	body_fat_id serial primary key,
 	body_fat_descr varchar(10)
 );
 
@@ -122,7 +122,8 @@ create table recipes( --TODO: to be adapted based on nutrition API
 	prep_time_minutes smallint,
 	cook_time_minutes smallint,
 	instructions text,
-	portions smallint 
+	portions SMALLINT,
+	total_cost money
 );
 
 create table recipes_ingredients(
