@@ -3,7 +3,6 @@ drop table if exists users_allergies;
 drop table if exists users;
 drop table if exists body_fat_types;
 drop table if exists sex_types;
-drop table if exists budget_types;
 drop table if exists allergies;
 drop table if exists cooking_durations;
 drop table if exists diet_types;
@@ -11,7 +10,7 @@ drop table if exists meal_repetition_types;
 drop table if exists recipes_ingredients;
 drop table if exists recipes;
 drop table if exists ingredients;
-drop table if exists offers;
+drop table if exists products;
 drop table if exists markets;
 
 create table body_fat_types(
@@ -39,11 +38,6 @@ create table cooking_durations(
 	duration_descr varchar(30)
 );
 
-create table budget_types(
-	budget_type_id serial primary key, 
-	budget_type_descr varchar(10)
-);
-
 create table meal_repetition_types(
 	meal_repetition_id serial primary key, 
 	meal_repetition_descr varchar(100)
@@ -51,7 +45,7 @@ create table meal_repetition_types(
 
 create table users(
 	user_id serial primary key, --automatically generated
-	user_name varchar(10), 
+	user_name varchar(50), 
 	email varchar(50),
 	password_hash varchar(100), -- NOTES: 1
 	age smallint,
@@ -62,8 +56,7 @@ create table users(
 	diet_type smallint,
 	cooking_duration_weekday smallint,
 	cooking_duration_weekend smallint,
-	budget money,
-	budget_type smallint,
+	budget_daily money,
 	-- meal layout (NOTE : if any of the below is null, then not chosen by user!)
 	breakfast_time time, 
 	lunch_time time, 
@@ -82,7 +75,6 @@ create table users(
 	foreign key (diet_type) references diet_types(diet_type_id),
 	foreign key (cooking_duration_weekday) references cooking_durations(duration_id),
 	foreign key (cooking_duration_weekend) references cooking_durations(duration_id),
-	foreign key (budget_type) references budget_types(budget_type_id),
 	foreign key (meal_repetition) references meal_repetition_types(meal_repetition_id)
 );
 
@@ -113,8 +105,6 @@ create table products( -- TODO: discuss how to delete outdated ones (with trigge
 	
 	foreign key (market_id) references markets(market_id)
 );
-
-SELECT * FROM products;
 
 create table ingredients(
 	ingredient_id bigserial primary key,
@@ -158,22 +148,19 @@ insert into body_fat_types(body_fat_descr)
 values ('low'), ('medium'), ('high');
 
 insert into sex_types(sex_descr)
-values ('female'), ('male'), ('other');
+values ('female'), ('male');
 
 insert into diet_types(diet_type_descr)
 values ('anything'), ('pescetarian'), ('vegetarian'), ('vegan'), ('keto'), ('paleo');
 
 insert into allergies(allergy_descr)
-values ('gluten'), ('peanuts'), ('eggs'), ('fish'), ('tree nuts'), ('dairy'), ('soy'), ('shellfish');
+values ('gluten'), ('peanuts'), ('eggs'), ('fish'), ('nuts'), ('dairy'), ('soy'), ('shellfish');
 
 insert into cooking_durations(duration_descr)
-values ('10 - 30 minutes'), ('30 - 1 hour'), ('1-1.5 hours'), ('1.5-2 hours'), ('2+ hours');
-
-insert into budget_types(budget_type_descr)
-values ('daily'), ('weekly'), ('monthly');
+values ('10-30 minutes'), ('30 minutes-1 hour'), ('1-1.5 hours'), ('1.5-2 hours'), ('2+ hours');
 
 insert into meal_repetition_types(meal_repetition_descr)
-values ('No repetition'), ('Repeat dinner for next day''s lunch'), ('Repeat lunch for same day''s dinner');
+values ('none'), ('repeatDinnerForNextLunch'), ('repeatLunchForSameDinner');
 
 insert into markets(market_name)
 values ('Jumbo'), ('Albert Heijn');
