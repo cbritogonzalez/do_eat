@@ -1,5 +1,9 @@
+import sys
+import os
 import json
 import pika
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Class that splits json file containing all items and processes each item and places in a queue
 class Splitter:
@@ -38,17 +42,3 @@ class Splitter:
     def close_connection(self):
         self.connection.close()
 
-
-# Example use case
-if __name__ == "__main__":
-    splitter = Splitter()
-
-    # Process AH data
-    ah_data = splitter.preprocess_message('savedata_AH.json')
-    splitter.enque_message(ah_data, 'ah_queue')
-
-    # Process Jumbo data
-    jumbo_data = splitter.preprocess_message('savedata_jumbo.json')
-    splitter.enque_message(jumbo_data, 'jumbo_queue')
-
-    splitter.close_connection()
