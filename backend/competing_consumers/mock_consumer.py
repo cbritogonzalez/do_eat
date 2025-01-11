@@ -3,17 +3,24 @@ import json
 from psycopg2 import sql
 import psycopg2
 import time
+import os
 
+# Read environment variables
+db_user = os.getenv('POSTGRES_USER')
+db_password = os.getenv('POSTGRES_PASSWORD')
+db_name = os.getenv('POSTGRES_DB')
+db_host = os.getenv('POSTGRES_HOST', 'localhost')  # Default to 'localhost' if not set
+db_port = os.getenv('POSTGRES_PORT', '5432')  # Default to '5432' if not set
 
 def insert_product(data):
     try:
         # Connect to your PostgreSQL database
         connection = psycopg2.connect(
-            dbname="postgres",
-            user="postgres",
-            password="1234",
-            host="localhost",
-            port="5432"
+            dbname=db_name,
+            user=db_user,
+            password=db_password,
+            host=db_host,
+            port=db_port
         )
         cursor = connection.cursor()
 
