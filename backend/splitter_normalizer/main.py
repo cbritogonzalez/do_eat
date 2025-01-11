@@ -21,6 +21,10 @@ if __name__ == "__main__":
         ah_normalized = normalizer.process_messages('ah_queue', normalizer.normalize_ah)
         print(f"Normalized AH messages: {ah_normalized}")
 
+        # print("Consuming ah q")
+        # ah_consumed_normalized = normalizer.process_queue('ah_queue',normalizer.normalize_ah)
+        # print(f"Normalized AH messages: {ah_consumed_normalized}")
+
         # Process messages from Jumbo queue without consuming them
         print("Processing Jumbo queue...")
         jumbo_normalized = normalizer.process_messages('jumbo_queue', normalizer.normalize_jumbo)
