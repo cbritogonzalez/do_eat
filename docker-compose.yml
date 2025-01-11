@@ -10,6 +10,11 @@ services:
       - ./api_fastapi/.env
     volumes:
       - ./api_fastapi:/app
+  celery:
+    platform: linux/amd64
+    build:
+      context: ./backend/api_celery/
+      dockerfile: Dockerfile
   postgres:
     image: postgres:latest
     ports:
@@ -20,6 +25,20 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=do_eat_db 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # RabbitMQ messaging port
+      - "15672:15672" # RabbitMQ management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 
 volumes:
   db-ah-data:
+  rabbitmq_data:
+    driver: local

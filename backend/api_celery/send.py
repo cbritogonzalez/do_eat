@@ -43,7 +43,7 @@ import json
 import os
 
 
-def send_json_file(file_path, queue_name, chunk_size=5000):
+def send_json_file(file_path, queue_name, chunk_size=8000):
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
     channel.queue_declare(queue=queue_name)
@@ -69,8 +69,8 @@ def send_json_file(file_path, queue_name, chunk_size=5000):
 
 if __name__ == "__main__":
     # Example JSON files to send
-    json_files = ["api_celery/data/savedata_AH.json", "api_celery/data/savedata_jumbo.json"]
-    # json_files = ["api_celery/savedata_jumbo.json"]
+    # json_files = ["api_celery/data/savedata_AH.json", "api_celery/data/savedata_jumbo.json"]
+    json_files = ["api_celery/savedata_AH.json"]
 
     for file_path in json_files:
         if os.path.exists(file_path):

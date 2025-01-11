@@ -13,11 +13,11 @@ app.conf.beat_schedule = {
         # "schedule": 300.0
         "schedule": crontab(minute="*/5")
     },
-    "schedule_fetch_jumbo": {
-        "task": "api_celery.tasks.fetch_jumbo",
-        # "schedule": 300.0
-        "schedule": crontab(minute="*/5")
-    },
+    # "schedule_fetch_jumbo": {
+    #     "task": "api_celery.tasks.fetch_jumbo",
+    #     # "schedule": 300.0
+    #     "schedule": crontab(minute="*/5")
+    # },
 }
 
 # celery -A api_celery worker --loglevel=info --pool=solo
