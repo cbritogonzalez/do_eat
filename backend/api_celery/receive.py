@@ -1,61 +1,41 @@
-#!/usr/bin/env python
 import pika
 import json
-import sys
-import os
-from datetime import datetime
+import threading
 
-
-def save_received_data(json_data):
-    # Generate a unique filename based on the current timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_name = f"received_data_{timestamp}.json"
-    file_path = os.path.join("api_celery", file_name)
-
-    # Ensure the directory exists
-    os.makedirs("api_celery", exist_ok=True)
-
-    # Write the JSON data to a file
-    with open(file_path, "w") as json_file:
-        json.dump(json_data, json_file, indent=2)
-    
-    print(f" [x] Data saved to {file_path}")
-
-
-def main():
+def consume_from_queue(queue_name):
+    """
+    Consumes messages from the specified RabbitMQ queue.
+    """
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
 
-    # Declare the queue
-    channel.queue_declare(queue='json_files')
+    channel.queue_declare(queue=queue_name)
 
-    # Define the callback for message processing
     def callback(ch, method, properties, body):
-        print(f" [x] Received message")
         try:
-            # Parse the JSON data
-            json_data = json.loads(body)
-            print(" [x] Received Data:", json_data)
+            data = json.loads(body)
+            print(f" [x] Received data from {queue_name}:")
+            # print(json.dumps(data, indent=2))  # Pretty-print the JSON
+        except Exception as e:
+            print(f"Error while processing message from {queue_name}: {e}")
 
-            # Save the received data to a JSON file
-            save_received_data(json_data)
+    channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
 
-        except json.JSONDecodeError as e:
-            print(f" [!] Error decoding JSON: {e}")
-
-    # Consume messages from the queue
-    channel.basic_consume(queue='json_files', on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
+    print(f' [*] Waiting for messages from {queue_name}. To exit press CTRL+C')
     channel.start_consuming()
-
 
 if __name__ == '__main__':
     try:
-        main()
+        # Create threads to handle both queues simultaneously
+        ah_thread = threading.Thread(target=consume_from_queue, args=('AH_json',))
+        jumbo_thread = threading.Thread(target=consume_from_queue, args=('Jumbo_json',))
+
+        # Start the threads
+        ah_thread.start()
+        jumbo_thread.start()
+
+        # Join threads to keep the program running
+        ah_thread.join()
+        jumbo_thread.join()
     except KeyboardInterrupt:
         print('Interrupted')
-        try:
-            sys.exit(0)
-        except SystemExit:
-            os._exit(0)
