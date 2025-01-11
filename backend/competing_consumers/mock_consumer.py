@@ -70,17 +70,17 @@ def callback(ch, method, properties, body):
 
     # Insert the product into the database
     insert_product(message)
-    time.sleep (20)
+    # time.sleep (20)
     print("Done")
     ch.basic_ack(delivery_tag=method.delivery_tag)  # Acknowledge the message
 
 
 # Establish a connection with RabbitMQ server
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
 channel = connection.channel()
 
 # Declare the same queue
-channel.queue_declare(queue='normalizer_competingConsumers_queue', durable=True)
+channel.queue_declare(queue='normalizer_competingConsumers_queue', durable=False)
 
 # Set up the consumer
 channel.basic_qos(prefetch_count=1)  # Fair dispatch (each consumer consumes 1 message at a time)

@@ -10,15 +10,29 @@ services:
       - ./api_fastapi/.env
     volumes:
       - ./api_fastapi:/app
-  celery:
+  consumers:
     platform: linux/amd64
     build:
-      context: ./backend/api_celery/
+      context: ./backend/competing_consumers/
       dockerfile: Dockerfile
-    # volumes:
-    #   - shared-volume:/app/data
-    depends_on:
-      - rabbitmq
+    deploy:
+      replicas: 2
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=do_eat_db 
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+  # celery:
+  #   platform: linux/amd64
+  #   build:
+  #     context: ./backend/api_celery/
+  #     dockerfile: Dockerfile
+  #   # volumes:
+  #   #   - shared-volume:/app/data
+  #   depends_on:
+  #     - rabbitmq
   # monitor:
   #   platform: linux/amd64
   #   build:
@@ -29,14 +43,14 @@ services:
   #   depends_on:
   #     - rabbitmq
   #     - celery
-  # splitter-normalizer:
-  #   platform: linux/amd64
-  #   restart: always
-  #   build:
-  #     context: ./backend/splitter_normalizer/
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     - rabbitmq
+  splitter-normalizer:
+    platform: linux/amd64
+    restart: always
+    build:
+      context: ./backend/splitter_normalizer/
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
   postgres:
     image: postgres:latest
     ports:

@@ -6,7 +6,7 @@ import json
 normalizer = Normalizer()
 
 # Establish a connection with RabbitMQ server
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
 channel = connection.channel()
 
 # Declare a queue
@@ -49,7 +49,7 @@ def callback_jumbo(ch, method, properties, body):
 if __name__ == "__main__":
     try:
         # AH
-        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
         channel = connection.channel()
 
         # Declare the same queue
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         channel.start_consuming()
 
         # jumbo
-        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
         channel = connection.channel()
 
         # Declare the same queue
