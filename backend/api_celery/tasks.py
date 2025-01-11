@@ -1,6 +1,9 @@
-from celery import app
-from albert_heijn import AHConnector
-from jumbo import JumboConnector
+from api_celery.celery import app
+# from celery import app
+from api_celery.albert_heijn import AHConnector
+# from albert_heijn import AHConnector
+from api_celery.jumbo import JumboConnector
+# from jumbo import JumboConnector
 import pika
 
 import os
@@ -10,85 +13,91 @@ import json
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-@app.task
-def fetch_albert_heijn():
-    logging.info("Starting to fetch data from Albert Heijn API.")
-    try:
-        connection_AH = AHConnector()
-        logger.info("Connected to Albert Heijn API.")
-        data = list(connection_AH.search_all_products())
-
-        folder_path = "api_celery/data"
-        file_path = os.path.join(folder_path, "savedata_AH.json")
-        
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-            logger.info(f"Created folder: {folder_path}")
-        
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            logger.info(f"Deleted existing file: {file_path}")
-        
-        with open(file_path, "w") as save_file:
-            json.dump(data, save_file, indent=1)
-        
-        logger.info("Data successfully fetched and saved to 'savedata_AH.json'.")
-
-        # Send the JSON file to RabbitMQ
-        send_json_file(file_path, queue_name="AH_json_files")
-        logger.info("Sent 'savedata_AH.json'.")
-
-    except Exception as e:
-        logger.error(f"Error occurred while fetching data: {e}")
+CHUNK_SIZE = 15777216
 
 # @app.task
-# def fetch_jumbo():
-#     logging.info("Starting to fetch data from Jumbo API.")
+# def fetch_albert_heijn():
+#     logging.info("Starting to fetch data from Albert Heijn API.")
 #     try:
-#         connection_jumbo = JumboConnector()
-#         logger.info("Connected to Jumbo API.")
-#         data = list(connection_jumbo.search_all_products())
+#         connection_AH = AHConnector()
+#         logger.info("Connected to Albert Heijn API.")
+#         data = list(connection_AH.search_all_products())
+        
+#         logger.info("Data successfully fetched from Albert Heijn API.")
 
-#         folder_path = "api_celery/data"
-#         file_path = os.path.join(folder_path, "savedata_jumbo.json")
-        
-#         if not os.path.exists(folder_path):
-#             os.makedirs(folder_path)
-#             logger.info(f"Created folder: {folder_path}")
-        
-#         if os.path.exists(file_path):
-#             os.remove(file_path)
-#             logger.info(f"Deleted existing file: {file_path}")
-        
-#         with open(file_path, "w") as save_file:
-#             json.dump(data, save_file, indent=1)
-        
-#         logger.info("Data successfully fetched and saved to 'savedata_jumbo.json'.")
+#         data_json = json.dumps(data, indent=1)
 
-        
+#         send_json_data(data_json, queue_name="AH_json")
+#         logger.info("Data successfully sent to RabbitMQ queue 'AH_json'.")
 #     except Exception as e:
 #         logger.error(f"Error occurred while fetching data: {e}")
 
+@app.task
+def fetch_jumbo():
+    logging.info("Starting to fetch data from Jumbo API.")
+    try:
+        connection_jumbo = JumboConnector()
+        logger.info("Connected to Jumbo API.")
+        data = list(connection_jumbo.search_all_products())
+        logger.info("Data successfully fetched from Jumbo.")
 
-def send_json_file(file_path, queue_name, chunk_size=8000):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-    channel = connection.channel()
-    channel.queue_declare(queue=queue_name)
+        data_chunks = list(chunk_data(data, CHUNK_SIZE))
 
-    # Read the JSON file
-    with open(file_path, 'r') as json_file:
-        data = json.load(json_file)
+        # Send each chunk to RabbitMQ
+        for i, chunk in enumerate(data_chunks):
+            data_json = json.dumps(chunk, indent=1)
+            send_json_data(data_json, queue_name="Jumbo_json")
+            logger.info(f"Chunk {i+1} of {len(data_chunks)} sent to RabbitMQ queue 'Jumbo_json'.")
 
-    # Split data into chunks
-    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+        # data_json = json.dumps(data, indent=1)
 
-    for idx, chunk in enumerate(chunks):
-        # Convert the JSON chunk to a string for sending
-        message = json.dumps(chunk)
+        # send_json_data(data_json, queue_name="Jumbo_json")
+        # logger.info("Data successfully sent to RabbitMQ queue 'Jumbo_json'.")
 
-        # Send the message to the queue
-        channel.basic_publish(exchange='', routing_key=queue_name, body=message)
-        print(f" [x] Sent chunk {idx + 1}/{len(chunks)} to queue '{queue_name}'")
+        
+    except Exception as e:
+        logger.error(f"Error occurred while fetching data: {e}")
 
-    channel.close()
-    connection.close()
+
+def chunk_data(data, chunk_size):
+    """
+    Split the data into chunks of a specified size.
+    Ensures that the chunk size doesn't exceed the max limit for RabbitMQ.
+    """
+    chunk = []
+    current_size = 0
+    for item in data:
+        item_size = len(json.dumps(item).encode('utf-8'))  # Get the size of the item in bytes
+        if current_size + item_size > chunk_size:
+            yield chunk  # Yield the current chunk
+            chunk = [item]  # Start a new chunk
+            current_size = item_size
+        else:
+            chunk.append(item)
+            current_size += item_size
+
+    # Yield the last chunk
+    if chunk:
+        yield chunk
+
+def send_json_data(data_json, queue_name):
+    """
+    Sends the serialized JSON data to a RabbitMQ queue.
+    """
+    try:
+        # Establish connection to RabbitMQ
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        channel = connection.channel()
+
+        # Declare the queue
+        channel.queue_declare(queue=queue_name)
+
+        # Publish the JSON data to the queue
+        channel.basic_publish(exchange='', routing_key=queue_name, body=data_json)
+        logger.info(f"JSON data sent to queue '{queue_name}'.")
+
+        # Close the connection
+        connection.close()
+
+    except Exception as e:
+        logger.error(f"Error while sending data to RabbitMQ: {e}")
