@@ -9,6 +9,7 @@ class Normalizer:
     def __init__(self, rabbitmq_host='localhost'):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
         self.channel = self.connection.channel()
+        self.channel.queue_declare(queue='normalizer_competingConsumers_queue')
 
     # translate string from NL to EN
     def translate_title(self, string_to_translate):

@@ -1,40 +1,85 @@
 from splitter import Splitter
 from normalizer import Normalizer
+import pika
+import json
+
+normalizer = Normalizer()
+
+# Establish a connection with RabbitMQ server
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+
+# Declare a queue
+channel.queue_declare(queue='normalizer_competingConsumers_queue', durable=False)
+
+def splitter_normalizer(big_message, mode):
+    for message in big_message:
+        if mode == 'jumbo':
+            norm_message=normalizer.normalize_jumbo(message)
+        elif mode == 'AH':
+            norm_message=normalizer.normalize_ah(message)
+        channel.basic_publish(exchange='',
+                            routing_key='normalizer_competingConsumers_queue',
+                            body=json.dumps(norm_message),
+                            properties=pika.BasicProperties(
+                                delivery_mode=2,  # Make message persistent
+                            ))
+
+def callback_ah(ch, method, properties, body):
+    # Decode and convert the JSON message back to a Python dictionary
+    message = json.loads(body.decode())
+    print(f"Received: {message}")
+
+    # Insert the product into the database
+    splitter_normalizer(message, 'AH')
+    print("Done")
+    ch.basic_ack(delivery_tag=method.delivery_tag)  # Acknowledge the message
+
+def callback_jumbo(ch, method, properties, body):
+    # Decode and convert the JSON message back to a Python dictionary
+    message = json.loads(body.decode())
+    print(f"Received: {message}")
+
+    # Insert the product into the database
+    splitter_normalizer(message, 'jumbo')
+    print("Done")
+    ch.basic_ack(delivery_tag=method.delivery_tag)  # Acknowledge the message
 
 # Example usage
 if __name__ == "__main__":
     try:
-        splitter = Splitter()
+        # AH
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
 
-        # Enqueue AH data into RabbitMQ queue
-        ah_data = splitter.preprocess_message('savedata_AH.json')
-        splitter.enque_message(ah_data, 'ah_queue')
+        # Declare the same queue
+        channel.queue_declare(queue='AH_json', durable=True)
 
-        # Enqueue Jumbo data into RabbitMQ queue
-        jumbo_data = splitter.preprocess_message('savedata_jumbo.json')
-        splitter.enque_message(jumbo_data, 'jumbo_queue')
+        # Set up the consumer
+        channel.basic_qos(prefetch_count=1)  # Fair dispatch (each consumer consumes 1 message at a time)
+        channel.basic_consume(queue='AH_json', on_message_callback=callback_ah)
 
-        normalizer = Normalizer()
+        print('Waiting for messages. To exit press CTRL+C')
+        channel.start_consuming()
 
-        # Process messages from AH queue without consuming them
-        print("Processing AH queue...")
-        ah_normalized = normalizer.process_messages('ah_queue', normalizer.normalize_ah)
-        print(f"Normalized AH messages: {ah_normalized}")
+        # jumbo
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
 
-        # print("Consuming ah q")
-        # ah_consumed_normalized = normalizer.process_queue('ah_queue',normalizer.normalize_ah)
-        # print(f"Normalized AH messages: {ah_consumed_normalized}")
+        # Declare the same queue
+        channel.queue_declare(queue='Jumbo_json', durable=True)
 
-        # Process messages from Jumbo queue without consuming them
-        print("Processing Jumbo queue...")
-        jumbo_normalized = normalizer.process_messages('jumbo_queue', normalizer.normalize_jumbo)
-        print(f"Normalized Jumbo messages: {jumbo_normalized}")
+        # Set up the consumer
+        channel.basic_qos(prefetch_count=1)  # Fair dispatch (each consumer consumes 1 message at a time)
+        channel.basic_consume(queue='Jumbo_json', on_message_callback=callback_jumbo)
 
-        print("Queues finished processing.")
+        print('Waiting for messages. To exit press CTRL+C')
+        channel.start_consuming()
+        
 
     except KeyboardInterrupt:
         print("Stopping consumers...")
 
-    finally:
-        splitter.close_connection()
-        normalizer.close_connection()
+        # finally:
+        #     splitter.close_connection()
+        #     normalizer.close_connection()

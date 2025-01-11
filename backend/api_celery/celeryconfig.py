@@ -1,4 +1,4 @@
-broker_url = 'pyamqp://guest@localhost//'
+broker_url = 'pyamqp://guest@rabbitmq//'
 task_serializer = 'json'
 result_serializer = 'json'
 accept_content = ['json']

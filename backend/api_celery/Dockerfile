@@ -1,6 +1,8 @@
-from python:3.11.8-slim
+FROM python:3.11.8-slim
 
 WORKDIR /app
+
+RUN mkdir /data
 
 COPY requirements.txt .
 

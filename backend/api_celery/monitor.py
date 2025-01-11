@@ -55,7 +55,7 @@ class Watcher(FileSystemEventHandler):
             subprocess.run(["python", send_script_path], check=True)
 
 if __name__ == "__main__":
-    folder_to_watch = "api_celery/data"
+    folder_to_watch = "/data"
     event_handler = Watcher()
     observer = Observer()
     observer.schedule(event_handler, folder_to_watch, recursive=False)

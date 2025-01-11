@@ -9,11 +9,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 class Splitter:
 
     # Initialize RabbitMQ queue
-    def __init__(self, rabbitmq_host='localhost'):
+    def __init__(self, rabbitmq_host='rabbitmq'):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue='ah_queue')
-        self.channel.queue_declare(queue='jumbo_queue')
+        # self.channel.queue_declare(queue='ah_queue')
+        # self.channel.queue_declare(queue='jumbo_queue')
 
     # read items from json file and split the message into individual messages
     def preprocess_message(self, input_file):

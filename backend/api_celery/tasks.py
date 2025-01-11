@@ -1,9 +1,9 @@
-from api_celery.celery import app
-# from celery import app
-from api_celery.albert_heijn import AHConnector
-# from albert_heijn import AHConnector
-from api_celery.jumbo import JumboConnector
-# from jumbo import JumboConnector
+# from api_celery.celery import app
+from celery import app
+# from api_celery.albert_heijn import AHConnector
+from albert_heijn import AHConnector
+# from api_celery.jumbo import JumboConnector
+from jumbo import JumboConnector
 import pika
 
 import os
@@ -15,22 +15,22 @@ logging.basicConfig(level=logging.INFO)
 
 CHUNK_SIZE = 15777216
 
-# @app.task
-# def fetch_albert_heijn():
-#     logging.info("Starting to fetch data from Albert Heijn API.")
-#     try:
-#         connection_AH = AHConnector()
-#         logger.info("Connected to Albert Heijn API.")
-#         data = list(connection_AH.search_all_products())
+@app.task
+def fetch_albert_heijn():
+    logging.info("Starting to fetch data from Albert Heijn API.")
+    try:
+        connection_AH = AHConnector()
+        logger.info("Connected to Albert Heijn API.")
+        data = list(connection_AH.search_all_products())
         
-#         logger.info("Data successfully fetched from Albert Heijn API.")
+        logger.info("Data successfully fetched from Albert Heijn API.")
 
-#         data_json = json.dumps(data, indent=1)
+        data_json = json.dumps(data, indent=1)
 
-#         send_json_data(data_json, queue_name="AH_json")
-#         logger.info("Data successfully sent to RabbitMQ queue 'AH_json'.")
-#     except Exception as e:
-#         logger.error(f"Error occurred while fetching data: {e}")
+        send_json_data(data_json, queue_name="AH_json")
+        logger.info("Data successfully sent to RabbitMQ queue 'AH_json'.")
+    except Exception as e:
+        logger.error(f"Error occurred while fetching data: {e}")
 
 @app.task
 def fetch_jumbo():
@@ -86,7 +86,7 @@ def send_json_data(data_json, queue_name):
     """
     try:
         # Establish connection to RabbitMQ
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='postgres'))
         channel = connection.channel()
 
         # Declare the queue

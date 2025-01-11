@@ -15,6 +15,28 @@ services:
     build:
       context: ./backend/api_celery/
       dockerfile: Dockerfile
+    # volumes:
+    #   - shared-volume:/app/data
+    depends_on:
+      - rabbitmq
+  # monitor:
+  #   platform: linux/amd64
+  #   build:
+  #     context: ./backend/api_celery/
+  #     dockerfile: Dockerfile.monitor
+  #   volumes:
+  #     - shared-volume:/app/data
+  #   depends_on:
+  #     - rabbitmq
+  #     - celery
+  # splitter-normalizer:
+  #   platform: linux/amd64
+  #   restart: always
+  #   build:
+  #     context: ./backend/splitter_normalizer/
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - rabbitmq
   postgres:
     image: postgres:latest
     ports:
@@ -42,3 +64,4 @@ volumes:
   db-ah-data:
   rabbitmq_data:
     driver: local
+  # shared-volume:

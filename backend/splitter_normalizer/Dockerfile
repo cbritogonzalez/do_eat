@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code into the container
 COPY splitter.py .
 COPY normalizer.py .
+COPY main.py .
+COPY savedata_AH.json .
+COPY savedata_jumbo.json .
 
 # Expose the port that the app runs on
 EXPOSE 7171
