@@ -27,6 +27,7 @@ DECLARE
 	new_meal_repetition smallint;
     new_allergy_id smallint;
     allergy TEXT;  -- Declare the loop variable for allergies
+    calories numeric;  -- Declare calories variable
 BEGIN
     -- Retrieve foreign key IDs
     SELECT body_fat_id INTO new_body_fat_id FROM body_fat_types WHERE body_fat_descr = bodyFat LIMIT 1;
@@ -35,11 +36,18 @@ BEGIN
     SELECT sex_id INTO new_sex_id FROM sex_types WHERE sex_descr = sex LIMIT 1;
 	SELECT meal_repetition_id INTO new_meal_repetition FROM meal_repetition_types WHERE meal_repetition_descr = mealRepetition LIMIT 1;
 
+    -- Compute calories based on sex
+    calories := CASE 
+        WHEN sex = 'male' THEN 13.397 * weight + 4.799 * height_cm - 5.677 * age + 88.362  -- Formula for men
+        WHEN sex = 'female' THEN 9.247 * weight + 3.098 * height_cm - 4.330 * age + 447.593  -- Formula for women
+        ELSE 0  -- Default value if sex is not specified
+    END;
+
     -- Insert into users table
     INSERT INTO users (
-        user_name,  -- Assuming a default value or logic is used for user_name
-        email,      -- Assuming a default value or logic is used for email
-        password_hash,  -- Assuming a default value or logic is used for password
+        user_name, 
+        email,
+        password_hash,
         age,
         height_cm,
         weight_kg,
@@ -55,10 +63,10 @@ BEGIN
         snack2_time,
         dinner_time,
         meal_repetition,
-        calories,  -- Assuming a default value or logic is used for calories
-        carbs,     -- Assuming a default value or logic is used for carbs
-        fat,       -- Assuming a default value or logic is used for fat
-        protein     -- Assuming a default value or logic is used for protein
+        calories,
+        carbs,
+        fat,
+        protein
     ) VALUES (
         'default',  -- Replace with actual logic for user_name
         'default_email@example.com',  -- Replace with actual logic for email
@@ -78,10 +86,10 @@ BEGIN
         snack2Time,
         dinnerTime,
         new_meal_repetition,
-        0,  -- Replace with actual value for calories
-        0,  -- Replace with actual value for carbs
-        0,  -- Replace with actual value for fat
-        0   -- Replace with actual value for protein
+        calories,
+        calories * 0.55 / 4,  -- Carbs formula (55% of calories, 4 calories per gram)
+        calories * 0.25 / 9,  -- Fat formula (25% of calories, 9 calories per gram)
+        calories * 0.20 / 4   -- Protein formula (20% of calories, 4 calories per gram)
     ) RETURNING user_id INTO new_user_id;
 
     -- Insert into users_allergies table
@@ -150,7 +158,3 @@ END;
 $$ LANGUAGE plpgsql;
 
 SELECT * FROM get_scheduled_meals(1);
-
-
-
-
