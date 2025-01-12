@@ -14,13 +14,12 @@ import {
   Container,
   ListItemButton,
 } from '@mui/material';
-import {
-  Home as HomeIcon,
-  Person as PersonIcon,
-  Settings as SettingsIcon,
-  Logout as LogoutIcon,
-  RestaurantMenu as MealPlanIcon, // Import the MealPlan icon
-} from '@mui/icons-material';
+import './Layout.css';
+import HomeIcon from '@mui/icons-material/Home';
+import ProfileIcon from '@mui/icons-material/Person';
+import SettingsIcon from '@mui/icons-material/Settings';
+import MealPlanIcon from '@mui/icons-material/RestaurantMenu';
+import { Logout as LogoutIcon } from '@mui/icons-material';
 
 interface LayoutProps {
   children: ReactNode;
@@ -39,12 +38,15 @@ function Layout({ children }: LayoutProps) {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: '#355c66' }}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Do Eat
-          </Typography>
-          <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
+          <img src="../public/do_eat_logo.png" alt="Do Eat Logo" className="header-logo" />
+          <Button
+            color="inherit"
+            onClick={handleLogout}
+            startIcon={<LogoutIcon />}
+            sx={{ marginLeft: 'auto', padding: '0.5rem 1rem', width: '150px' }}
+          >
             Logout
           </Button>
         </Toolbar>
@@ -62,19 +64,19 @@ function Layout({ children }: LayoutProps) {
         <Box sx={{ overflow: 'auto' }}>
           <List>
             <ListItemButton onClick={() => navigate('/home')}>
-              <ListItemIcon><HomeIcon /></ListItemIcon>
+              <ListItemIcon><HomeIcon sx={{ color: '#355c66' }} /></ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
             <ListItemButton onClick={() => navigate('/profile')}>
-              <ListItemIcon><PersonIcon /></ListItemIcon>
+              <ListItemIcon><ProfileIcon sx={{ color: '#355c66' }} /></ListItemIcon>
               <ListItemText primary="Profile" />
             </ListItemButton>
             <ListItemButton onClick={() => navigate('/settings')}>
-              <ListItemIcon><SettingsIcon /></ListItemIcon>
+              <ListItemIcon><SettingsIcon sx={{ color: '#355c66' }} /></ListItemIcon>
               <ListItemText primary="Settings" />
             </ListItemButton>
             <ListItemButton onClick={() => navigate('/mealplan')}>
-              <ListItemIcon><MealPlanIcon /></ListItemIcon>
+              <ListItemIcon><MealPlanIcon sx={{ color: '#355c66' }} /></ListItemIcon>
               <ListItemText primary="Meal Plan" />
             </ListItemButton>
           </List>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Container, Typography, Box, Checkbox, FormControlLabel, FormGroup, Grid, FormLabel } from '@mui/material';
 import { createProfile } from '../services/api.ts';
+import { useNavigate } from 'react-router-dom';
 
 function Setup() {
   const [age, setAge] = useState('');
@@ -21,6 +22,7 @@ function Setup() {
     dinner: ''
   });
   const [mealRepetition, setMealRepetition] = useState('');
+  const navigate = useNavigate();
 
   const handleAllergyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -44,6 +46,7 @@ function Setup() {
     try {
       await createProfile(profileData);
       alert('Profile saved successfully');
+      navigate('/home'); // Navigate to the home screen
     } catch (error) {
       console.error('Error saving profile:', error);
       alert('Failed to save profile');
@@ -277,9 +280,9 @@ function Setup() {
               </Select>
             </FormControl>
 
-            <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+            <button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
               Submit
-            </Button>
+            </button>
           </form>
         </Box>
       </Container>
