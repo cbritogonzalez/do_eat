@@ -18,7 +18,7 @@ CHUNK_SIZE = 15777216
 
 def send_json_data(data_json, queue_name):
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
         channel = connection.channel()
         channel.queue_declare(queue=queue_name)
         channel.basic_publish(exchange='', routing_key=queue_name, body=data_json)

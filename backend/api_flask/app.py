@@ -18,9 +18,9 @@ CHUNK_SIZE = 15777216
 
 def send_json_data(data_json, queue_name):
     try:
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
         channel = connection.channel()
-        channel.queue_declare(queue=queue_name)
+        channel.queue_declare(queue=queue_name, durable=True)
         channel.basic_publish(exchange='', routing_key=queue_name, body=data_json)
         logger.info(f"JSON data sent to queue '{queue_name}'.")
         connection.close()
@@ -86,15 +86,17 @@ def run_scheduler():
 @app.route('/schedule/fetch_albert_heijn', methods=['POST'])
 def schedule_ah_task():
 
-    schedule.every(360).seconds.do(fetch_albert_heijn)
-    return jsonify({"status": "Scheduled Albert Heijn fetch every 30 seconds"}), 200
+    # schedule.every(360).seconds.do(fetch_albert_heijn)
+    fetch_albert_heijn()
+    return jsonify({"status": "Got AH products"}), 200
 
 
 @app.route('/schedule/fetch_jumbo', methods=['POST'])
 def schedule_jumbo_task():
 
-    schedule.every(300).seconds.do(fetch_jumbo)
-    return jsonify({"status": "Scheduled Jumbo fetch every 30 seconds"}), 200
+    # schedule.every(300).seconds.do(fetch_jumbo)
+    fetch_jumbo()
+    return jsonify({"status": "Get Jumbo products"}), 200
 
 
 if __name__ == '__main__':

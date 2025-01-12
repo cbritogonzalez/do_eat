@@ -15,7 +15,8 @@ def run_trigger_task():
         logger.error(f"Error running task.py: {e}")
 
 # schedule.every().sunday.at("06:00").do(run_trigger_task)
-schedule.every(10).minutes.do(run_trigger_task)
+# schedule.every(10).minutes.do(run_trigger_task)
+# schedule.every(1).minutes.do(run_trigger_task)
 
 def run_scheduler():
     logger.info("Scheduler is running...")
@@ -24,4 +25,5 @@ def run_scheduler():
         time.sleep(1)
 
 if __name__ == "__main__":
+    schedule.every(1).minutes.do(run_trigger_task)
     run_scheduler()
