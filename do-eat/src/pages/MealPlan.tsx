@@ -2,8 +2,18 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import './MealPlan.css';
 
-const fetchScheduledMeals = async (userId) => {
-  const response = await fetch(`http://localhost:3000/scheduledMeals?userId=${userId}`);
+const getCookie = (name) => {
+  const cookieString = document.cookie;
+  const cookies = cookieString.split("; ");
+  for (let cookie of cookies) {
+      const [key, value] = cookie.split("=");
+      if (key === name) return decodeURIComponent(value);
+  }
+  return null; // Return null if the cookie is not found
+};
+
+const fetchScheduledMeals = async (email) => {
+  const response = await fetch(`http://localhost:3000/scheduledMeals?email=${email}`);
   console.log('fetchScheduledMeals response:', response); // Add this line
   const data = await response.json();
   return data;
@@ -13,8 +23,8 @@ function MealPlan() {
   const [mealPlan, setMealPlan] = useState([]);
 
   useEffect(() => {
-    const userId = 1; // Replace with dynamic user ID as needed
-    fetchScheduledMeals(userId).then(data => setMealPlan(data));
+    const email = getCookie("email")?.replace(/"/g, "");
+    fetchScheduledMeals(email).then(data => setMealPlan(data));
   }, []);
 
   return (

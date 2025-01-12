@@ -25,6 +25,17 @@ interface LayoutProps {
   children: ReactNode;
 }
 
+const getCookie = (name) => {
+  const cookieString = document.cookie;
+  const cookies = cookieString.split("; ");
+  for (let cookie of cookies) {
+      const [key, value] = cookie.split("=");
+      if (key === name) return decodeURIComponent(value);
+  }
+  return null; // Return null if the cookie is not found
+};
+
+
 function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -78,6 +89,16 @@ function Layout({ children }: LayoutProps) {
             <ListItemButton onClick={() => navigate('/mealplan')}>
               <ListItemIcon><MealPlanIcon sx={{ color: '#355c66' }} /></ListItemIcon>
               <ListItemText primary="Meal Plan" />
+            </ListItemButton>
+            <ListItemButton onClick={() => {
+              const email = getCookie("email")?.replace(/"/g, "");
+              fetch('http://localhost:3000/createMeals?email=' + email, { method: 'POST' })
+              .then(response => response.json())
+              .then(data => console.log(data))
+              .catch(error => console.error('Error:', error));
+            }}>
+              <ListItemIcon><SettingsIcon /></ListItemIcon>
+              <ListItemText primary="Generate recipes" />
             </ListItemButton>
           </List>
         </Box>

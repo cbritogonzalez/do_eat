@@ -1,4 +1,5 @@
 CREATE OR REPLACE PROCEDURE insert_user(
+    IN email TEXT,
     IN age smallint,
     IN allergies TEXT[],
     IN bodyFat TEXT,
@@ -45,9 +46,7 @@ BEGIN
 
     -- Insert into users table
     INSERT INTO users (
-        user_name, 
         email,
-        password_hash,
         age,
         height_cm,
         weight_kg,
@@ -68,9 +67,7 @@ BEGIN
         fat,
         protein
     ) VALUES (
-        'default',  -- Replace with actual logic for user_name
-        'default_email@example.com',  -- Replace with actual logic for email
-        'default_hash',  -- Replace with actual hash for password
+        email,  -- Replace with actual logic for email
         age,
         height_cm,
         weight,

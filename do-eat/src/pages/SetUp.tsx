@@ -3,6 +3,18 @@ import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Container
 import { createProfile } from '../services/api.ts';
 import { useNavigate } from 'react-router-dom';
 
+const getCookie = (name) => {
+  const cookieString = document.cookie;
+  const cookies = cookieString.split("; ");
+  for (let cookie of cookies) {
+      const [key, value] = cookie.split("=");
+      if (key === name) return decodeURIComponent(value);
+  }
+  return null; // Return null if the cookie is not found
+};
+
+
+
 function Setup() {
   const [age, setAge] = useState('');
   const [height, setHeight] = useState('');
@@ -42,7 +54,10 @@ function Setup() {
   const handleSubmit = async (e: React.FormEvent) => {
     alert('Submitting profile');
     e.preventDefault();
-    const profileData = { age, allergies, bodyFat, budget, cookingDuration, dietType, goal, height, mealRepetition, mealTimes, sex, weight};
+    // get email from cookies
+    const email = getCookie("email")?.replace(/"/g, "");
+    console.log("Token cookie value:", email);
+    const profileData = {email, age, allergies, bodyFat, budget, cookingDuration, dietType, goal, height, mealRepetition, mealTimes, sex, weight};
     try {
       await createProfile(profileData);
       alert('Profile saved successfully');

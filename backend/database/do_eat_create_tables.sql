@@ -45,9 +45,7 @@ create table meal_repetition_types(
 
 create table users(
 	user_id serial primary key, --automatically generated
-	user_name varchar(50), 
 	email varchar(50),
-	password_hash varchar(100), -- NOTES: 1
 	age smallint,
 	height_cm smallint, 
 	weight_kg smallint,
@@ -165,8 +163,3 @@ values ('none'), ('repeatDinnerForNextLunch'), ('repeatLunchForSameDinner');
 
 insert into markets(market_name)
 values ('Jumbo'), ('Albert Heijn');
-
-/*
- * NOTES:
- * 1. check this for how to insert, check passwords https://docs.vultr.com/how-to-securely-store-passwords-using-postgresql
- */
