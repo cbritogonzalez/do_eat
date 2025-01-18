@@ -174,20 +174,6 @@ class AHConnector:
 # if __name__ == '__main__':
 #     from pprint import pprint
 #     connector = AHConnector()    
-#     folder_path = "api_celery"
-#     file_path = os.path.join(folder_path, "savedata_AH_test.json")
-            
-#     with open(file_path, "w") as save_file:
-#         save_file.write("[\n")
-#         first = True
-#         for item in connector.search_all_products():
-#             if not first:
-#                 save_file.write(",\n")
-#             json.dump(item, save_file)
-#             first = False
-#         save_file.write("\n]")
-#     pprint("TEST")
-
-#     results = list(connector.search_all_products())
-#     print(f"Fetched {len(results)} items.")
-#     print(results)
+    
+#     categories = connector.get_categories()
+#     pprint(categories)

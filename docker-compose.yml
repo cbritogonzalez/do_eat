@@ -1,11 +1,18 @@
 services:
-  # flask:
-  #   platform: linux/amd64
-  #   build:
-  #     context: ./backend/api_flask/
-  #     dockerfile: Dockerfile
-    # ports:
-    #   - 5000:5000
+  flask:
+    platform: linux/amd64
+    build:
+      context: ./backend/api_flask/
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+
   app:
     platform: linux/amd64
     build:
@@ -17,28 +24,40 @@ services:
       - ./api_fastapi/.env
     volumes:
       - ./api_fastapi:/app
-  # consumers:
-  #   platform: linux/amd64
-  #   build:
-  #     context: ./backend/competing_consumers/
-  #     dockerfile: Dockerfile
-  #   deploy:
-  #     replicas: 2
-  #   restart: always
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=1234
-  #     - POSTGRES_DB=do_eat_db 
-  #     - POSTGRES_HOST=postgres
-  #     - POSTGRES_PORT=5432
-  # splitter-normalizer:
-  #   platform: linux/amd64
-  #   restart: always
-  #   build:
-  #     context: ./backend/splitter_normalizer/
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     - rabbitmq
+
+  consumers:
+    platform: linux/amd64
+    build:
+      context: ./backend/competing_consumers/
+      dockerfile: Dockerfile
+    deploy:
+      replicas: 2
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=do_eat_db 
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+
+  splitter-normalizer:
+    platform: linux/amd64
+    restart: always
+    build:
+      context: ./backend/splitter_normalizer/
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+
   postgres:
     image: postgres:latest
     ports:
@@ -49,6 +68,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=do_eat_db 
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -60,6 +80,10 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - rabbitmq_network
+
+
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -71,6 +95,7 @@ services:
     volumes:
       - ./prometheus:/etc/prometheus
       - prom_data:/prometheus
+
   grafana:
     image: grafana/grafana
     container_name: grafana
@@ -83,8 +108,20 @@ services:
     volumes:
       - ./grafana:/etc/grafana/provisioning/datasources
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./volumes/loki-data:/loki
+      #- ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+
 volumes:
   db-ah-data:
   rabbitmq_data:
     driver: local
   prom_data:
+
+networks:
+  rabbitmq_network:
+    driver: bridge

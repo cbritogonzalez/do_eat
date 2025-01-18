@@ -15,9 +15,11 @@ channel.queue_declare(queue='normalizer_competingConsumers_queue', durable=False
 def splitter_normalizer(big_message, mode):
     for message in big_message:
         if mode == 'jumbo':
-            norm_message=normalizer.normalize_jumbo(message)
+            norm_message = normalizer.normalize_jumbo(message)
         elif mode == 'AH':
-            norm_message=normalizer.normalize_ah(message)
+            category = message.get("mainCategory")
+            if category not in ["Drogisterij", "Gezondheid, sport", "Baby en kind", "Huishouden", "Huisdier", "Koken, tafelen, vrije tijd"]:
+                norm_message = normalizer.normalize_ah(message)
         channel.basic_publish(exchange='',
                             routing_key='normalizer_competingConsumers_queue',
                             body=json.dumps(norm_message),
