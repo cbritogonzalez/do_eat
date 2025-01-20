@@ -1,0 +1,72 @@
+.day-plan {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.day-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.meal {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+.meal-time {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.meal-description,
+.meal-nutrition,
+.meal-cook-time,
+.meal-cost,
+.meal-portions {
+  font-size: 14px;
+  color: #666;
+  margin: 2px 0;
+}
+
+.meal-ingredients {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 5px 0;
+  background-color: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.meal-ingredients li {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.green-text {
+  color: green;
+}
+
+.icon-clock::before {
+  content: '⏰';
+  margin-right: 5px;
+}
+
+.icon-money::before {
+  content: '💰';
+  margin-right: 5px;
+}
+
+.icon-human::before {
+  content: '👤';
+  margin-right: 5px;
+}

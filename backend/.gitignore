@@ -1,0 +1,5 @@
+venv
+backend/
+.python-version
+__pycache__
+nutrition\supermarket.py

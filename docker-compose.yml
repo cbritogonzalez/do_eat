@@ -1,0 +1,127 @@
+services:
+  flask:
+    platform: linux/amd64
+    build:
+      context: ./backend/api_flask/
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+
+  app:
+    platform: linux/amd64
+    build:
+      context: ./api_fastapi/
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    env_file:
+      - ./api_fastapi/.env
+    volumes:
+      - ./api_fastapi:/app
+
+  consumers:
+    platform: linux/amd64
+    build:
+      context: ./backend/competing_consumers/
+      dockerfile: Dockerfile
+    deploy:
+      replicas: 2
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=do_eat_db 
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+
+  splitter-normalizer:
+    platform: linux/amd64
+    restart: always
+    build:
+      context: ./backend/splitter_normalizer/
+      dockerfile: Dockerfile
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - rabbitmq_network
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-ah-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=do_eat_db 
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # RabbitMQ messaging port
+      - "15672:15672" # RabbitMQ management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - rabbitmq_network
+
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prom_data:/prometheus
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - ./grafana:/etc/grafana/provisioning/datasources
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./volumes/loki-data:/loki
+      #- ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+
+volumes:
+  db-ah-data:
+  rabbitmq_data:
+    driver: local
+  prom_data:
+
+networks:
+  rabbitmq_network:
+    driver: bridge
